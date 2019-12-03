@@ -1,11 +1,6 @@
-import React from 'react';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
+import React, { useState, useEffect } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
@@ -15,19 +10,8 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import SearchIcon from '@material-ui/icons/Search';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import InterventionCard from "../components/InterventionCard";
-
-function Copyright() {
-    return (
-        <Typography variant="body2" color="textSecondary" align="center">
-            {'Copyright © '}
-            <Link color="inherit" href="https://material-ui.com/">
-                Your Website
-            </Link>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
-}
+import useDebounce from "../hooks/useDebounce";
+import * as queryString from "query-string";
 
 const useStyles = makeStyles(theme => ({
     paper: {
@@ -59,8 +43,49 @@ const mockIntervention = {
         "count": 435
     }
 
+function searchInterventions(name, category) {
+    const params = {
+        ...(name && { name }),
+        ...(category && { category }),
+    }
+    const query = queryString.stringify(params);
+    return fetch(
+        `https://clinicaltrialsapi.cancer.gov/v1/interventions?${query}`,
+        {
+            method: 'GET'
+        }
+    )
+        .then(r => r.json())
+        .then(r => r.terms)
+        .catch(error => {
+            console.error(error);
+            return [];
+        });
+}
+
 export default function TrialSearch() {
     const classes = useStyles();
+    const [keywordTerm, setKeywordTerm] = useState('');
+    const [categoryTerm, setCategoryTerm] = useState('');
+    const [results, setResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    const [debouncedKeywordTerm, debouncedCategoryTerm] = useDebounce(keywordTerm, categoryTerm, 500);
+
+    useEffect(
+        () => {
+            if (debouncedKeywordTerm || debouncedCategoryTerm) {
+                setIsSearching(true);
+                searchInterventions(debouncedKeywordTerm, debouncedCategoryTerm).then(results => {
+                    setIsSearching(false);
+                    setResults(results);
+                });
+            } else {
+                setResults([]);
+            }
+        },
+        [debouncedKeywordTerm, debouncedCategoryTerm]
+    );
 
 
     return (
@@ -84,6 +109,8 @@ export default function TrialSearch() {
                                 id="keywords"
                                 label="Keywords"
                                 autoFocus
+                                placeholder="Intervention Keywords"
+                                onChange={e => setKeywordTerm(e.target.value)}
                             />
                         </Grid>
                         <Grid item xs={12} sm={12} md={6}>
@@ -97,22 +124,16 @@ export default function TrialSearch() {
                                 fullWidth
                                 id="category"
                                 label="Category"
+                                placeholder="Intervention Category"
+                                onChange={e => setCategoryTerm(e.target.value)}
                             />
                         </Grid>
                         <Grid item xs={12} sm={12} md={12} className={classes.cardsGrid}>
-                            <InterventionCard {...mockIntervention}/>
-                            <InterventionCard {...mockIntervention}/>
-                            <InterventionCard {...mockIntervention}/>
-                            <InterventionCard {...mockIntervention}/>
-                            <InterventionCard {...mockIntervention}/>
-                            <InterventionCard {...mockIntervention}/>
+                            {results && results ? results.map(result => <InterventionCard {...result}/>) : null}
                         </Grid>
                     </Grid>
                 </form>
             </div>
-            <Box mt={5}>
-                <Copyright />
-            </Box>
         </Container>
     );
 }

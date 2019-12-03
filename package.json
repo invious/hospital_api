@@ -8,6 +8,7 @@
     "clsx": "latest",
     "next": "latest",
     "prop-types": "latest",
+    "query-string": "^6.9.0",
     "react": "latest",
     "react-dom": "latest"
   },

@@ -14,6 +14,7 @@ import Container from '@material-ui/core/Container';
 import InputAdornment from "@material-ui/core/InputAdornment";
 import SearchIcon from '@material-ui/icons/Search';
 import FilterListIcon from '@material-ui/icons/FilterList';
+import InterventionCard from "../components/InterventionCard";
 
 function Copyright() {
     return (
@@ -35,14 +36,32 @@ const useStyles = makeStyles(theme => ({
         flexDirection: 'column',
         alignItems: 'center',
     },
+    cardsGrid: {
+        display: 'flex',
+        flexWrap: 'wrap',
+    },
     form: {
         width: '100%', // Fix IE 11 issue.
         marginTop: theme.spacing(3),
-    },
+    }
 }));
+
+const mockIntervention = {
+        "name": "Anthracycline Antineoplastic Antibiotic",
+        "codes": [
+            "C1594"
+        ],
+        "synonyms": [
+            "Anthracyclines",
+            "Chemotherapy, Cancer, Anthracyclines"
+        ],
+        "category": "agent category",
+        "count": 435
+    }
 
 export default function TrialSearch() {
     const classes = useStyles();
+
 
     return (
         <Container component="main" maxWidth="md">
@@ -80,8 +99,13 @@ export default function TrialSearch() {
                                 label="Category"
                             />
                         </Grid>
-                        <Grid item xs={12} sm={12} md={12}>
-
+                        <Grid item xs={12} sm={12} md={12} className={classes.cardsGrid}>
+                            <InterventionCard {...mockIntervention}/>
+                            <InterventionCard {...mockIntervention}/>
+                            <InterventionCard {...mockIntervention}/>
+                            <InterventionCard {...mockIntervention}/>
+                            <InterventionCard {...mockIntervention}/>
+                            <InterventionCard {...mockIntervention}/>
                         </Grid>
                     </Grid>
                 </form>
